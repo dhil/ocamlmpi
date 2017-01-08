@@ -3,10 +3,12 @@ OCAMLOPT=ocamlopt
 OCAMLDEP=ocamldep
 
 DESTDIR=`$(OCAMLC) -where`/ocamlmpi
-MPIINCDIR=/usr/include/mpich2
-MPILIBDIR=/usr/lib
+MPIINCDIR=/usr/lib/openmpi/include
+MPILIBDIR=/usr/lib/openmpi/lib
+#MPIINCDIR=/usr/include/mpich2
+#MPILIBDIR=/usr/lib
 
-CC=mpicc
+CC=gcc
 CFLAGS=-I`$(OCAMLC) -where` -I$(MPIINCDIR) -O2 -g -Wall
 
 COBJS=init.o comm.o msgs.o collcomm.o groups.o utils.o
