@@ -1,5 +1,5 @@
-OCAMLC=ocamlc
-OCAMLOPT=ocamlopt
+OCAMLC=ocamlc -safe-string
+OCAMLOPT=ocamlopt -safe-string
 OCAMLDEP=ocamldep
 
 DESTDIR=`$(OCAMLC) -where`/ocamlmpi

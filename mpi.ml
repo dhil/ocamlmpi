@@ -197,7 +197,7 @@ let broadcast v root comm =
     (* Other processes receive length, allocate buffer, receive data,
        and unmarshal it. *)
     let len = broadcast_int 0 root comm in
-    let data = String.create len in
+    let data = Bytes.to_string (Bytes.create len) in
     broadcast_string data root comm;
     Marshal.from_string data 0
   end
@@ -239,21 +239,22 @@ let scatter data root comm =
     then mpi_error "Mpi.scatter: wrong array size";
     (* Marshal data to strings *)
     let buffers =
-      Array.map (fun d -> Marshal.to_string d [Marshal.Closures]) data in
+      Array.map (fun d -> Marshal.to_bytes d [Marshal.Closures]) data in
     (* Determine lengths of strings *)
-    let lengths = Array.map String.length buffers in
+    let lengths = Array.map Bytes.length buffers in
     (* Scatter those lengths *)
     ignore(scatter_int lengths root comm);
     (* Build single buffer with all data *)
     let total_len = Array.fold_left (+) 0 lengths in
-    let send_buffer = String.create total_len in
+    let send_buffer = Bytes.create total_len in
     let pos = ref 0 in
     for i = 0 to nprocs - 1 do
-      String.blit buffers.(i) 0 send_buffer !pos lengths.(i);
+      Bytes.blit buffers.(i) 0 send_buffer !pos lengths.(i);
       pos := !pos + lengths.(i)
     done;
+    let send_buffer = Bytes.to_string send_buffer in
     (* Allocate receive buffer *)
-    let recv_buffer = String.create lengths.(myself) in
+    let recv_buffer = Bytes.to_string (Bytes.create lengths.(myself)) in
     (* Do the scatter *)
     scatter_string send_buffer lengths recv_buffer root comm;
     (* Return value for root *)
@@ -262,7 +263,7 @@ let scatter data root comm =
     (* Get our length *)
     let len = scatter_int [||] root comm in
     (* Allocate receive buffer *)
-    let recv_buffer = String.create len in
+    let recv_buffer = Bytes.to_string (Bytes.create len) in
     (* Do the scatter *)
     scatter_string "" [||] recv_buffer root comm;
     (* Return value received *)
@@ -309,7 +310,7 @@ let gather data root comm =
     gather_int (String.length send_buffer) lengths root comm;
     (* Allocate receive buffer big enough to hold all data *)
     let total_len = Array.fold_left (+) 0 lengths in
-    let recv_buffer = String.create total_len in
+    let recv_buffer = Bytes.to_string (Bytes.create total_len) in
     (* Gather the data *)
     gather_string send_buffer recv_buffer lengths root comm;
     (* Build array of results *)
@@ -381,7 +382,7 @@ let allgather data comm =
   allgather_int (String.length send_buffer) lengths comm;
   (* Allocate receive buffer big enough to hold all data *)
   let total_len = Array.fold_left (+) 0 lengths in
-  let recv_buffer = String.create total_len in
+  let recv_buffer = Bytes.to_string (Bytes.create total_len) in
   (* Gather the data *)
   allgather_string send_buffer recv_buffer lengths comm;
   (* Build array of results *)
