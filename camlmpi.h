@@ -19,6 +19,8 @@
 #define Group_val(grp) (*((MPI_Group *) &Field(grp, 1)))
 #define Request_req_val(req) (*((MPI_Request *) &Field(req, 1)))
 #define Buffer_req_val(req)   (*((char **) &Field(req, 2)))
+#define Bytes_val(x) ((char *) Bp_val(x)) // Same as String_val (c.f. mlvalues.h)
+#define bytes_length string_length
 
 extern value caml_mpi_alloc_comm(MPI_Comm c);
 
