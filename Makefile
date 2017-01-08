@@ -14,7 +14,7 @@ CFLAGS=-I`$(OCAMLC) -where` -I$(MPIINCDIR) -O2 -g -Wall
 COBJS=init.o comm.o msgs.o collcomm.o groups.o utils.o
 OBJS=mpi.cmo
 
-all: libcamlmpi.a byte
+all: libcamlmpi.a byte mpi.cma mpi.cmxa
 
 install:
 	ocamlfind install mpi META mpi.mli mpi.cmi $(wildcard mpi.cm*a) $(wildcard *mpi.a)
