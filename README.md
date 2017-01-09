@@ -25,12 +25,13 @@ networks.
 
 More info on MPI is available at:
 
-     http://www.mcs.anl.gov/mpi/index.html
+  [http://www.mcs.anl.gov/mpi/index.html](http://www.mcs.anl.gov/mpi/index.html)
+
 
 MPICH is a popular, free implementation of MPI for network of
 Unix workstations.  It is available at:
 
-     http://www.mcs.anl.gov/mpi/mpich/index.html
+  [http://www.mcs.anl.gov/mpi/mpich/index.html](http://www.mcs.anl.gov/mpi/mpich/index.html)
 
 
 ## THE OCAMLMPI INTERFACE:
@@ -44,10 +45,12 @@ for more detailed info.
 Most communication functions come in five flavors:
 - one generic function operating on any data type  (e.g. Mpi.send)
 - four specialized functions for the following types:
-              int         (Mpi.send_int)
-              float       (Mpi.send_float
-              int array   (Mpi.send_int_array)
-              float array (Mpi.send_float_array)
+
+   + int         (Mpi.send_int)
+   + float       (Mpi.send_float
+   + int array   (Mpi.send_int_array)
+   + float array (Mpi.send_float_array)
+              
 The generic function is simpler to use, and more general, but involves
 more overhead than the specialized functions.
 
