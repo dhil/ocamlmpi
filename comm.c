@@ -139,3 +139,9 @@ value caml_mpi_comm_create(value comm, value group)
   MPI_Comm_create(Comm_val(comm), Group_val(group), &newcomm);
   return caml_mpi_alloc_comm(newcomm);
 }
+
+value caml_mpi_comm_abort(value comm, value exit_code) {
+  int ecode;
+  ecode = MPI_Abort(Comm_val(comm), Int_val(exit_code));
+  return Val_int(ecode);
+}

@@ -17,7 +17,8 @@
 (* Initialization *)
 
 exception Error of string
-
+exception Abort_failure of int
+                             
 let mpi_error s = raise(Error s)
 
 external init : string array -> unit = "caml_mpi_init"
@@ -62,6 +63,11 @@ external cart_coords:
     communicator -> rank -> int array
     = "caml_mpi_cart_coords"
 
+external abort: communicator -> int -> int = "caml_mpi_comm_abort"
+let abort comm code =
+  let ecode = abort comm code in
+  raise (Abort_failure ecode)
+        
 (* Point-to-point communication *)
 
 type tag = int

@@ -20,6 +20,9 @@
 exception Error of string
         (* Raised when an operation of the [Mpi] module encounters an error.
            The string argument describes the error. *)
+exception Abort_failure of int
+        (* Raised when [Mpi.abort] fails. The integer argument is the error
+           code *)
 
 (*** Basic operations on communicators *)
 
@@ -38,7 +41,14 @@ external comm_rank: communicator -> rank = "caml_mpi_comm_rank"
         (* Return the rank of the calling node in the given communicator.
            The rank [Mpi.comm_rank c] is between 0 (inclusive) and
            [Mpi.comm_size c] (exclusive). *)
-
+val abort: communicator -> int -> 'a
+        (* [Mpi.abort comm ecode] Terminates all MPI processes
+          associated with the communicator [comm]. This function does
+          not return. If any errors occurs during the termination then
+          [Mpi.Abort_failure] is raised.  The process calling
+          MPI_Abort must be a member of the communicator passed
+          in.  *)
+                                             
 (*** Point-to-point communication *)
 
 type tag = int
