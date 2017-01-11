@@ -325,6 +325,7 @@ value caml_mpi_allreduce_intarray(value data, value result, value op,
                                   value comm)
 {
   mlsize_t len = Wosize_val(data);
+  mlsize_t res_len = Wosize_val(result);
   /* Decode data at all nodes in place */
   caml_mpi_decode_intarray(data, len);
   /* Do the reduce */
@@ -333,7 +334,7 @@ value caml_mpi_allreduce_intarray(value data, value result, value op,
   /* Re-encode data at all nodes in place */
   caml_mpi_encode_intarray(data, len);
   /* Re-encode result at all nodes in place */
-  caml_mpi_encode_intarray(result, len);
+  caml_mpi_encode_intarray(result, res_len);
   return Val_unit;
 }
 
@@ -351,12 +352,14 @@ value caml_mpi_allreduce_floatarray(value data, value result, value op,
 {
   mlsize_t len = Wosize_val(data) / Double_wosize;
   double * d = caml_mpi_input_floatarray(data, len);
-  double * res = caml_mpi_output_floatarray(result, len);
+
+  mlsize_t res_len = Wosize_val(result) / Double_wosize;
+  double * res = caml_mpi_output_floatarray(result, res_len);
 
   MPI_Allreduce(d, res, len, MPI_DOUBLE,
                 reduce_floatop[Int_val(op)], Comm_val(comm));
   caml_mpi_free_floatarray(d);
-  caml_mpi_commit_floatarray(res, result, len);
+  caml_mpi_commit_floatarray(res, result, res_len);
   return Val_unit;
 }
 

@@ -470,16 +470,16 @@ external allreduce_int_array:
     int array -> int array -> intop -> communicator -> unit
     = "caml_mpi_allreduce_intarray"
 let allreduce_int_array src dst op comm =
-  if Array.length src <> Array.length dst
-  then mpi_error "Mpi.allreduce_int_array: array size mismatch"
+  if Array.length src > Array.length dst
+  then mpi_error "Mpi.allreduce_int_array: destination array is too small"
   else allreduce_int_array src dst op comm
 
 external allreduce_float_array:
     float array -> float array -> floatop -> communicator -> unit
     = "caml_mpi_allreduce_floatarray"
 let allreduce_float_array src dst op comm =
-  if Array.length src <> Array.length dst
-  then mpi_error "Mpi.allreduce_float_array: array size mismatch"
+  if Array.length src > Array.length dst
+  then mpi_error "Mpi.allreduce_float_array: destination array is too small"
   else allreduce_float_array src dst op comm
 
 (* Scan *)
