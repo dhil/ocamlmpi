@@ -273,6 +273,7 @@ value caml_mpi_reduce_intarray(value data, value result, value op,
                                value root, value comm)
 {
   mlsize_t len = Wosize_val(data);
+  mlsize_t reslen = Wosize_val(result);
   int i, myrank;
   /* Decode data at all nodes in place */
   caml_mpi_decode_intarray(data, len);
@@ -283,7 +284,7 @@ value caml_mpi_reduce_intarray(value data, value result, value op,
   caml_mpi_encode_intarray(data, len);
   /* At root node, also encode result */
   MPI_Comm_rank(Comm_val(comm), &myrank);
-  if (myrank == Int_val(root)) caml_mpi_encode_intarray(result, len);
+  if (myrank == Int_val(root)) caml_mpi_encode_intarray(result, reslen);
   return Val_unit;
 }
 
@@ -325,7 +326,7 @@ value caml_mpi_allreduce_intarray(value data, value result, value op,
                                   value comm)
 {
   mlsize_t len = Wosize_val(data);
-  mlsize_t res_len = Wosize_val(result);
+  mlsize_t reslen = Wosize_val(result);
   /* Decode data at all nodes in place */
   caml_mpi_decode_intarray(data, len);
   /* Do the reduce */
@@ -334,7 +335,7 @@ value caml_mpi_allreduce_intarray(value data, value result, value op,
   /* Re-encode data at all nodes in place */
   caml_mpi_encode_intarray(data, len);
   /* Re-encode result at all nodes in place */
-  caml_mpi_encode_intarray(result, res_len);
+  caml_mpi_encode_intarray(result, reslen);
   return Val_unit;
 }
 
@@ -353,13 +354,13 @@ value caml_mpi_allreduce_floatarray(value data, value result, value op,
   mlsize_t len = Wosize_val(data) / Double_wosize;
   double * d = caml_mpi_input_floatarray(data, len);
 
-  mlsize_t res_len = Wosize_val(result) / Double_wosize;
-  double * res = caml_mpi_output_floatarray(result, res_len);
+  mlsize_t reslen = Wosize_val(result) / Double_wosize;
+  double * res = caml_mpi_output_floatarray(result, reslen);
 
   MPI_Allreduce(d, res, len, MPI_DOUBLE,
                 reduce_floatop[Int_val(op)], Comm_val(comm));
   caml_mpi_free_floatarray(d);
-  caml_mpi_commit_floatarray(res, result, res_len);
+  caml_mpi_commit_floatarray(res, result, reslen);
   return Val_unit;
 }
 
