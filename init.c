@@ -54,6 +54,7 @@ static caml_root caml_mpi_exn = NULL;
 
 value caml_mpi_init(value arguments)
 {
+  CAMLparam1(arguments);
   int argc, i;
   char ** argv;
   MPI_Errhandler hdlr;
@@ -67,17 +68,19 @@ value caml_mpi_init(value arguments)
   //MPI_Errhandler_create((MPI_Handler_function *)caml_mpi_error_handler, &hdlr);
   //MPI_Errhandler_set(MPI_COMM_WORLD, hdlr);
   
-  return Val_unit;
+  CAMLreturn(Val_unit);
 }
 
 value caml_mpi_finalize(value unit)
 {
+  CAMLparam1(unit);
   MPI_Finalize();
-  return Val_unit;
+  CAMLreturn(Val_unit);
 }
 
 value caml_mpi_wtime(value unit)
 {
-  return copy_double(MPI_Wtime());
+  CAMLparam1(unit);
+  CAMLreturn(copy_double(MPI_Wtime()));
 }
 
