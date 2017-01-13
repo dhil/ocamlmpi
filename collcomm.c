@@ -80,8 +80,8 @@ static void caml_mpi_counts_displs(value lengths,
 
   size = Wosize_val(lengths);
   if (size > 0) {
-    *counts = stat_alloc(size * sizeof(int));
-    *displs = stat_alloc(size * sizeof(int));
+    *counts = caml_stat_alloc(size * sizeof(int));
+    *displs = caml_stat_alloc(size * sizeof(int));
     for (i = 0, disp = 0; i < size; i++) {
       (*counts)[i] = Int_field(lengths, i);
       (*displs)[i] = disp;
@@ -112,13 +112,14 @@ value caml_mpi_scatter(value sendbuf, value sendlengths,
 
 value caml_mpi_scatter_int(value data, value root, value comm)
 {
-  value n;
-  CAMLlocal1(srcbuf);
+  CAMLparam3(data, root, comm);
+  CAMLlocal2(n, srcbuf);
   caml_read_field(data, 0, &srcbuf);
+  
   MPI_Scatter(&srcbuf, 1, MPI_LONG,
               &n, 1, MPI_LONG,
               Int_val(root), Comm_val(comm));
-  return n;
+  CAMLreturn(n);
 }
 
 value caml_mpi_scatter_float(value data, value root, value comm)

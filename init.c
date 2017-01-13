@@ -25,33 +25,30 @@
 
 /* Error handling */
 
-static short caml_mpi_exn_initialised = 0;
-static value caml_mpi_exn;
+//static short caml_mpi_exn_initialised = 0;
+static caml_root caml_mpi_exn = NULL;
 
-static void caml_mpi_error_handler(MPI_Comm * comm, int * errcode, ...)
-{
-  char errmsg[MPI_MAX_ERROR_STRING + 1];
-  int resultlen;
-  int found;
-  value msg;
+/* static void caml_mpi_error_handler(MPI_Comm * comm, int * errcode, ...) */
+/* { */
+/*   char errmsg[MPI_MAX_ERROR_STRING + 1]; */
+/*   int resultlen; */
+/*   value msg; */
 
-  MPI_Error_string(*errcode, errmsg, &resultlen);
-  msg = copy_string(errmsg);
-  if (!caml_mpi_exn_initialised) {
-    caml_mpi_exn = caml_get_named_value("Mpi.Error", &found);
-    if (!found)
-      invalid_argument("Exception MPI.Error not initialized");
-    else
-      caml_mpi_exn_initialised = 1;
-  }
-  /*if (caml_mpi_exn == NULL) {
-    caml_mpi_exn = caml_get_named_value("Mpi.Error", &found);
-    //if (caml_mpi_exn == NULL)
-    if (found != 0)
-      invalid_argument("Exception MPI.Error not initialized");
-      }*/
-  raise_with_arg(caml_mpi_exn, msg);
-}
+/*   MPI_Error_string(*errcode, errmsg, &resultlen); */
+/*   msg = copy_string(errmsg); */
+/*   if (caml_mpi_exn == NULL) { */
+/*     caml_mpi_exn = caml_named_root("Mpi.Error"); */
+/*     if (caml_mpi_exn == NULL) */
+/*       invalid_argument("Exception MPI.Error not initialized"); */
+/*   } */
+/*   /\* if (caml_mpi_exn == NULL) { *\/ */
+/*   /\*   caml_mpi_exn = caml_get_named_value("Mpi.Error", &found); *\/ */
+/*   /\*   //if (caml_mpi_exn == NULL) *\/ */
+/*   /\*   if (found != 0) *\/ */
+/*   /\*     invalid_argument("Exception MPI.Error not initialized"); *\/ */
+/*   /\*     } *\/ */
+/*   raise_with_arg(caml_mpi_exn, msg); */
+/* } */
 
 /* Initialization and finalization */
 
@@ -67,8 +64,8 @@ value caml_mpi_init(value arguments)
   argv[i] = NULL;
   MPI_Init(&argc, &argv);
   /* Register an error handler */
-  MPI_Errhandler_create((MPI_Handler_function *)caml_mpi_error_handler, &hdlr);
-  MPI_Errhandler_set(MPI_COMM_WORLD, hdlr);
+  //MPI_Errhandler_create((MPI_Handler_function *)caml_mpi_error_handler, &hdlr);
+  //MPI_Errhandler_set(MPI_COMM_WORLD, hdlr);
   
   return Val_unit;
 }
