@@ -57,7 +57,7 @@ value caml_mpi_send(value data, value flags,
     MPI_Send(buffer, len, MPI_BYTE, Int_val(dest), Int_val(tag), comm);
     leave_blocking_section();
   End_roots();
-  caml_stat_free(buffer);
+  free(buffer);
   return Val_unit;
 }
 
