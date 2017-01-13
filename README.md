@@ -47,7 +47,7 @@ Most communication functions come in five flavors:
 - four specialized functions for the following types:
 
    + int         (Mpi.send_int)
-   + float       (Mpi.send_float
+   + float       (Mpi.send_float)
    + int array   (Mpi.send_int_array)
    + float array (Mpi.send_float_array)
               
