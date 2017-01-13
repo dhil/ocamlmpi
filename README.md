@@ -7,7 +7,7 @@ $ mpirun -n <number of processes> ./a.out
 ```
 
 # Original README
-This is OCamlMPI version 1.01, a Caml binding to the Message Passing
+This is OcamlMPI version 1.01, a Caml binding to the Message Passing
 Interface (MPI).
 
 
