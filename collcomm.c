@@ -54,7 +54,9 @@ value caml_mpi_broadcast_float(value data, value root, value comm)
 
 value caml_mpi_broadcast_intarray(value data, value root, value comm)
 {
-  MPI_Bcast(&Field(data, 0), Wosize_val(data), MPI_LONG,
+  CAMLlocal1(buffer);
+  caml_read_field(data, 0, &buffer);
+  MPI_Bcast(&buffer, Wosize_val(data), MPI_LONG,
             Int_val(root), Comm_val(comm));
   return Val_unit;
 }
@@ -81,7 +83,7 @@ static void caml_mpi_counts_displs(value lengths,
     *counts = stat_alloc(size * sizeof(int));
     *displs = stat_alloc(size * sizeof(int));
     for (i = 0, disp = 0; i < size; i++) {
-      (*counts)[i] = Int_val(Field(lengths, i));
+      (*counts)[i] = Int_field(lengths, i);
       (*displs)[i] = disp;
       disp += (*counts)[i];
     }
@@ -102,8 +104,8 @@ value caml_mpi_scatter(value sendbuf, value sendlengths,
                Bytes_val(recvbuf), bytes_length(recvbuf), MPI_BYTE,
                Int_val(root), Comm_val(comm));
   if (sendcounts != NULL) {
-    stat_free(sendcounts);
-    stat_free(displs);
+    caml_stat_free(sendcounts);
+    caml_stat_free(displs);
   }
   return Val_unit;
 }
@@ -111,8 +113,9 @@ value caml_mpi_scatter(value sendbuf, value sendlengths,
 value caml_mpi_scatter_int(value data, value root, value comm)
 {
   value n;
-
-  MPI_Scatter(&Field(data, 0), 1, MPI_LONG,
+  CAMLlocal1(srcbuf);
+  caml_read_field(data, 0, &srcbuf);
+  MPI_Scatter(&srcbuf, 1, MPI_LONG,
               &n, 1, MPI_LONG,
               Int_val(root), Comm_val(comm));
   return n;
@@ -133,9 +136,14 @@ value caml_mpi_scatter_intarray(value source, value dest,
                                 value root, value comm)
 {
   mlsize_t len = Wosize_val(dest);
-  MPI_Scatter(&Field(source, 0), len, MPI_LONG,
-              &Field(dest, 0), len, MPI_LONG,
+  CAMLlocal2(srcbuf, destbuf);
+  caml_read_field(source, 0, &srcbuf);
+  
+  MPI_Scatter(&srcbuf, len, MPI_LONG,
+              &destbuf, len, MPI_LONG,
               Int_val(root), Comm_val(comm));
+  
+  caml_modify_field(dest, 0, destbuf);
   return Val_unit;
 }
 
@@ -167,16 +175,18 @@ value caml_mpi_gather(value sendbuf,
               Bytes_val(recvbuf), recvcounts, displs, MPI_BYTE,
               Int_val(root), Comm_val(comm));
   if (recvcounts != NULL) {
-    stat_free(recvcounts);
-    stat_free(displs);
+    caml_stat_free(recvcounts);
+    caml_stat_free(displs);
   }
   return Val_unit;
 }
 
 value caml_mpi_gather_int(value data, value result, value root, value comm)
 {
+  CAMLlocal1(buffer);
+  caml_read_field(result, 0, &buffer);
   MPI_Gather(&data, 1, MPI_LONG,
-             &Field(result, 0), 1, MPI_LONG,
+             &buffer, 1, MPI_LONG,
              Int_val(root), Comm_val(comm));
   return Val_unit;
 }
@@ -185,9 +195,14 @@ value caml_mpi_gather_intarray(value data, value result,
                                value root, value comm)
 {
   mlsize_t len = Wosize_val(data);
-  MPI_Gather(&Field(data, 0), len, MPI_LONG,
-             &Field(result, 0), len, MPI_LONG,
+  CAMLlocal2(srcbuf, destbuf);
+  caml_read_field(data, 0, &srcbuf);
+  
+  MPI_Gather(&srcbuf, len, MPI_LONG,
+             &destbuf, len, MPI_LONG,
              Int_val(root), Comm_val(comm));
+
+  caml_modify_field(result, 0, destbuf);
   return Val_unit;
 }
 
@@ -217,15 +232,18 @@ value caml_mpi_allgather(value sendbuf,
   MPI_Allgatherv(Bytes_val(sendbuf), bytes_length(sendbuf), MPI_BYTE,
                  Bytes_val(recvbuf), recvcounts, displs, MPI_BYTE,
                  Comm_val(comm));
-  stat_free(recvcounts);
-  stat_free(displs);
+  caml_stat_free(recvcounts);
+  caml_stat_free(displs);
   return Val_unit;
 }
 
 value caml_mpi_allgather_int(value data, value result, value comm)
 {
+  CAMLlocal1(buffer);
+  caml_read_field(data, 0, &buffer);
+  
   MPI_Allgather(&data, 1, MPI_LONG,
-                &Field(result, 0), 1, MPI_LONG,
+                &buffer, 1, MPI_LONG,
                 Comm_val(comm));
   return Val_unit;
 }
@@ -233,9 +251,14 @@ value caml_mpi_allgather_int(value data, value result, value comm)
 value caml_mpi_allgather_intarray(value data, value result, value comm)
 {
   mlsize_t len = Wosize_val(data);
-  MPI_Allgather(&Field(data, 0), len, MPI_LONG,
-                &Field(result, 0), len, MPI_LONG,
+  CAMLlocal2(srcbuf, destbuf);
+  caml_read_field(data, 0, &srcbuf);
+  
+  MPI_Allgather(&srcbuf, len, MPI_LONG,
+                &destbuf, len, MPI_LONG,
                 Comm_val(comm));
+
+  caml_modify_field(result, 0, destbuf);
   return Val_unit;
 }
 
@@ -278,8 +301,11 @@ value caml_mpi_reduce_intarray(value data, value result, value op,
   /* Decode data at all nodes in place */
   caml_mpi_decode_intarray(data, len);
   /* Do the reduce */
-  MPI_Reduce(&Field(data, 0), &Field(result, 0), len, MPI_LONG,
+  CAMLlocal2(srcbuf, destbuf);
+  caml_read_field(data, 0, &srcbuf);
+  MPI_Reduce(&srcbuf, &destbuf, len, MPI_LONG,
              reduce_intop[Int_val(op)], Int_val(root), Comm_val(comm));
+  caml_modify_field(result, 0, destbuf);
   /* Re-encode data at all nodes in place */
   caml_mpi_encode_intarray(data, len);
   /* At root node, also encode result */
@@ -330,8 +356,11 @@ value caml_mpi_allreduce_intarray(value data, value result, value op,
   /* Decode data at all nodes in place */
   caml_mpi_decode_intarray(data, len);
   /* Do the reduce */
-  MPI_Allreduce(&Field(data, 0), &Field(result, 0), len, MPI_LONG,
+  CAMLlocal2(srcbuf, destbuf);
+  caml_read_field(data, 0, &srcbuf);
+  MPI_Allreduce(&srcbuf, &destbuf, len, MPI_LONG,
                 reduce_intop[Int_val(op)], Comm_val(comm));
+  caml_modify_field(result, 0, destbuf);
   /* Re-encode data at all nodes in place */
   caml_mpi_encode_intarray(data, len);
   /* Re-encode result at all nodes in place */
@@ -382,8 +411,11 @@ value caml_mpi_scan_intarray(value data, value result, value op, value comm)
   /* Decode data at all nodes in place */
   caml_mpi_decode_intarray(data, len);
   /* Do the scan */
-  MPI_Scan(&Field(data, 0), &Field(result, 0), len, MPI_LONG,
+  CAMLlocal2(srcbuf, destbuf);
+  caml_read_field(data, 0, &srcbuf);
+  MPI_Scan(&srcbuf, &destbuf, len, MPI_LONG,
            reduce_intop[Int_val(op)], Comm_val(comm));
+  caml_modify_field(result, 0, destbuf);
   /* Re-encode data at all nodes in place */
   caml_mpi_encode_intarray(data, len);
   /* Encode result */

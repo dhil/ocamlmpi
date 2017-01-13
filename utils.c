@@ -23,13 +23,17 @@
 void caml_mpi_decode_intarray(value data, mlsize_t len)
 {
   mlsize_t i;
-  for (i = 0; i < len; i++) Field(data, i) = Long_val(Field(data, i));
-}
+  for (i = 0; i < len; i++) caml_modify_field(data, i, Long_field(data, i));
+  }
 
 void caml_mpi_encode_intarray(value data, mlsize_t len)
 {
   mlsize_t i;
-  for (i = 0; i < len; i++) Field(data, i) = Val_long(Field(data, i));
+  for (i = 0; i < len; i++) {
+    CAMLlocal1(e);
+    caml_read_field(data, i, &e);
+    caml_modify_field(data, i, Val_long(e));
+  }
 }
 
 #ifdef ARCH_ALIGN_DOUBLE
@@ -48,14 +52,14 @@ double * caml_mpi_output_floatarray(value data, mlsize_t len)
 
 void caml_mpi_free_floatarray(double * d)
 {
-  if (d != NULL) stat_free(d);
+  if (d != NULL) caml_stat_free(d);
 }
 
 void caml_mpi_commit_floatarray(double * d, value data, mlsize_t len)
 {
   if (d != NULL) {
     bcopy(d, (double *) data, len * sizeof(double));
-    stat_free(d);
+    caml_stat_free(d);
   }
 }
 

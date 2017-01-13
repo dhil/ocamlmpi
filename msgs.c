@@ -57,7 +57,7 @@ value caml_mpi_send(value data, value flags,
     MPI_Send(buffer, len, MPI_BYTE, Int_val(dest), Int_val(tag), comm);
     leave_blocking_section();
   End_roots();
-  stat_free(buffer);
+  caml_stat_free(buffer);
   return Val_unit;
 }
 
@@ -71,7 +71,9 @@ value caml_mpi_send_int(value data, value dest, value tag, value comm)
 
 value caml_mpi_send_intarray(value data, value dest, value tag, value comm)
 {
-  MPI_Send(&Field(data, 0), Wosize_val(data), MPI_LONG,
+  CAMLlocal1(buffer);
+  caml_read_field(data, 0, &buffer);
+  MPI_Send(&buffer, Wosize_val(data), MPI_LONG,
            Int_val(dest), Int_val(tag), Comm_val(comm));
   return Val_unit;
 }
@@ -97,9 +99,9 @@ value caml_mpi_probe(value source, value tag, value comm)
   MPI_Probe(Int_val(source), Int_val(tag), Comm_val(comm), &status);
   MPI_Get_count(&status, MPI_BYTE, &count);
   res = alloc_tuple(3);
-  Field(res, 0) = Val_int(count);
-  Field(res, 1) = Val_int(status.MPI_SOURCE);
-  Field(res, 2) = Val_int(status.MPI_TAG);
+  caml_initialize_field(res, 0, Val_int(count));
+  caml_initialize_field(res, 1, Val_int(status.MPI_SOURCE));
+  caml_initialize_field(res, 2, Val_int(status.MPI_TAG));
   return res;
 }
 
@@ -115,9 +117,9 @@ value caml_mpi_iprobe(value source, value tag, value comm)
   {
     MPI_Get_count(&status, MPI_BYTE, &count);
     res = alloc_tuple(3);
-    Field(res, 0) = Val_int(count);
-    Field(res, 1) = Val_int(status.MPI_SOURCE);
-    Field(res, 2) = Val_int(status.MPI_TAG);
+    caml_initialize_field(res, 0, Val_int(count));
+    caml_initialize_field(res, 1, Val_int(status.MPI_SOURCE));
+    caml_initialize_field(res, 2, Val_int(status.MPI_TAG));
     return Val_some(res);
   }
   else
@@ -137,7 +139,7 @@ value caml_mpi_receive(value vlen, value source, value tag, value vcomm)
   value res;
 
   Begin_root(vcomm)             /* prevent deallocation of communicator */
-    buffer = stat_alloc(len);
+    buffer = caml_stat_alloc(len);
     enter_blocking_section();
     MPI_Recv(buffer, len, MPI_BYTE,
              Int_val(source), Int_val(tag), comm, &status);
@@ -163,8 +165,9 @@ value caml_mpi_receive_int(value source, value tag, value comm)
 value caml_mpi_receive_intarray(value data, value source, value tag, value comm)
 {
   MPI_Status status;
-
-  MPI_Recv(&Field(data, 0), Wosize_val(data), MPI_LONG,
+  CAMLlocal1(buffer);
+  caml_read_field(data, 0, &buffer);
+  MPI_Recv(&buffer, Wosize_val(data), MPI_LONG,
            Int_val(source), Int_val(tag), Comm_val(comm), &status);
   return Val_unit;
 }
@@ -215,7 +218,7 @@ static void caml_mpi_finalize_request(value v)
   /*else
     printf("null request isn't freed\n");*/
   if (Buffer_req_val(v))
-    stat_free(Buffer_req_val(v)); /* free buffer */
+    caml_stat_free(Buffer_req_val(v)); /* free buffer */
   /*printf("done");*/
 }
 

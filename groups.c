@@ -52,16 +52,21 @@ value caml_mpi_group_rank(value group)
 value caml_mpi_group_translate_ranks(value group1, value ranks, value group2)
 {
   int n = Wosize_val(ranks);
-  int * ranks1 = stat_alloc(n * sizeof(int));
-  int * ranks2 = stat_alloc(n * sizeof(int));
+  int * ranks1 = caml_stat_alloc(n * sizeof(int));
+  int * ranks2 = caml_stat_alloc(n * sizeof(int));
   int i;
   value res;
 
-  for (i = 0; i < n; i++) ranks1[i] = Int_val(Field(ranks, i));
+  for (i = 0; i < n; i++) {
+    CAMLlocal1(rank);
+    caml_read_field(ranks, i, &rank);
+    ranks1[i] = Int_val(rank);
+  }
   MPI_Group_translate_ranks(Group_val(group1), n, ranks1,
                             Group_val(group2), ranks2);
   res = alloc(n, 0);
-  for (i = 0; i < n; i++) Field(res, i) = Val_int(ranks2[i]);
+  for (i = 0; i < n; i++) caml_modify_field(res, i, Val_int(ranks2[i]));
+
   stat_free(ranks1);
   stat_free(ranks2);
   return res;
@@ -99,10 +104,10 @@ value caml_mpi_group_incl(value group, value vranks)
 {
   MPI_Group newgroup;
   int n = Wosize_val(vranks);
-  int * ranks = stat_alloc(n * sizeof(int));
+  int * ranks = caml_stat_alloc(n * sizeof(int));
   int i;
 
-  for (i = 0; i < n; i++) ranks[i] = Int_val(Field(vranks, i));
+  for (i = 0; i < n; i++) ranks[i] = Int_field(vranks, i);
   MPI_Group_incl(Group_val(group), n, ranks, &newgroup);
   stat_free(ranks);
   return caml_mpi_alloc_group(newgroup);
@@ -112,10 +117,10 @@ value caml_mpi_group_excl(value group, value vranks)
 {
   MPI_Group newgroup;
   int n = Wosize_val(vranks);
-  int * ranks = stat_alloc(n * sizeof(int));
+  int * ranks = caml_stat_alloc(n * sizeof(int));
   int i;
 
-  for (i = 0; i < n; i++) ranks[i] = Int_val(Field(vranks, i));
+  for (i = 0; i < n; i++) ranks[i] = Int_field(vranks, i);
   MPI_Group_excl(Group_val(group), n, ranks, &newgroup);
   stat_free(ranks);
   return caml_mpi_alloc_group(newgroup);
@@ -126,13 +131,14 @@ static void caml_mpi_extract_ranges(value vranges,
                                     /*out*/ int (**rng)[3])
 {
   int n = Wosize_val(vranges);
-  int (*ranges)[3] = stat_alloc(n * sizeof(int[3]));
+  int (*ranges)[3] = caml_stat_alloc(n * sizeof(int[3]));
   int i;
   for (i = 0; i < n; i++) {
-    value rng = Field(vranges, i);
-    ranges[n][0] = Int_val(Field(rng, 0));
-    ranges[n][1] = Int_val(Field(rng, 1));
-    ranges[n][2] = Int_val(Field(rng, 2));
+    CAMLlocal1(rng);
+    caml_read_field(vranges, i, &rng);
+    ranges[n][0] = Int_field(rng, 0);
+    ranges[n][1] = Int_field(rng, 1);
+    ranges[n][2] = Int_field(rng, 2);
   }
   *num = n;
   *rng = ranges;

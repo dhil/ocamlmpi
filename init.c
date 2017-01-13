@@ -25,22 +25,32 @@
 
 /* Error handling */
 
-static value * caml_mpi_exn = NULL;
+static short caml_mpi_exn_initialised = 0;
+static value caml_mpi_exn;
 
 static void caml_mpi_error_handler(MPI_Comm * comm, int * errcode, ...)
 {
   char errmsg[MPI_MAX_ERROR_STRING + 1];
   int resultlen;
+  int found;
   value msg;
 
   MPI_Error_string(*errcode, errmsg, &resultlen);
   msg = copy_string(errmsg);
-  if (caml_mpi_exn == NULL) {
-    caml_mpi_exn = caml_named_value("Mpi.Error");
-    if (caml_mpi_exn == NULL)
+  if (!caml_mpi_exn_initialised) {
+    caml_mpi_exn = caml_get_named_value("Mpi.Error", &found);
+    if (!found)
       invalid_argument("Exception MPI.Error not initialized");
+    else
+      caml_mpi_exn_initialised = 1;
   }
-  raise_with_arg(*caml_mpi_exn, msg);
+  /*if (caml_mpi_exn == NULL) {
+    caml_mpi_exn = caml_get_named_value("Mpi.Error", &found);
+    //if (caml_mpi_exn == NULL)
+    if (found != 0)
+      invalid_argument("Exception MPI.Error not initialized");
+      }*/
+  raise_with_arg(caml_mpi_exn, msg);
 }
 
 /* Initialization and finalization */
@@ -52,13 +62,14 @@ value caml_mpi_init(value arguments)
   MPI_Errhandler hdlr;
 
   argc = Wosize_val(arguments);
-  argv = stat_alloc((argc + 1) * sizeof(char *));
-  for (i = 0; i < argc; i++) argv[i] = String_val(Field(arguments, i));
+  argv = caml_stat_alloc((argc + 1) * sizeof(char *));
+  for (i = 0; i < argc; i++) argv[i] = String_val(Field_imm(arguments, i));
   argv[i] = NULL;
   MPI_Init(&argc, &argv);
   /* Register an error handler */
   MPI_Errhandler_create((MPI_Handler_function *)caml_mpi_error_handler, &hdlr);
   MPI_Errhandler_set(MPI_COMM_WORLD, hdlr);
+  
   return Val_unit;
 }
 
