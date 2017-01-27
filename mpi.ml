@@ -322,7 +322,7 @@ let gather data root comm =
     let res0 = Marshal.from_bytes recv_buffer 0 in
     let res = Array.make nprocs res0 in
     let pos = ref 0 in
-    for i = 1 to nprocs - 1 do
+    for i = 1 to nprocs - 1 do      
       pos := !pos + lengths.(i - 1);
       res.(i) <- Marshal.from_bytes recv_buffer !pos
     done;
