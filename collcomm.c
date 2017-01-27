@@ -172,12 +172,6 @@ value caml_mpi_scatter_floatarray(value source, value dest,
 
 /* Gather */
 
-void print_int_array(long *array, int length) {
-  int i;
-  for (i = 0; i < length; i++) printf("%ld ", array[i]);
-  printf("\n");
-}
-
 value caml_mpi_gather(value sendbuf,
                       value recvbuf, value recvlengths,
                       value root, value comm)
@@ -242,11 +236,7 @@ value caml_mpi_allgather(value sendbuf,
 {
   CAMLparam4(sendbuf, recvbuf, recvlengths, comm);
   int * recvcounts, * displs;
-
-  printf("Length = %d", bytes_length(sendbuf));
-  fflush(stdout);
-  MPI_Barrier(Comm_val(comm));
-  
+ 
   caml_mpi_counts_displs(recvlengths, &recvcounts, &displs);
   MPI_Allgatherv(Bytes_val(sendbuf), bytes_length(sendbuf), MPI_BYTE,
                  Bytes_val(recvbuf), recvcounts, displs, MPI_BYTE,
