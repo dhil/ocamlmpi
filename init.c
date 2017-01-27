@@ -25,30 +25,28 @@
 
 /* Error handling */
 
-//static short caml_mpi_exn_initialised = 0;
 static caml_root caml_mpi_exn = NULL;
 
-/* static void caml_mpi_error_handler(MPI_Comm * comm, int * errcode, ...) */
-/* { */
-/*   char errmsg[MPI_MAX_ERROR_STRING + 1]; */
-/*   int resultlen; */
-/*   value msg; */
+static void caml_mpi_error_handler(MPI_Comm * comm, int * errcode, ...)
+{
+  CAMLparam0();
+  CAMLlocal1(msg);
+  
+  char errmsg[MPI_MAX_ERROR_STRING + 1];
+  int resultlen;
 
-/*   MPI_Error_string(*errcode, errmsg, &resultlen); */
-/*   msg = copy_string(errmsg); */
-/*   if (caml_mpi_exn == NULL) { */
-/*     caml_mpi_exn = caml_named_root("Mpi.Error"); */
-/*     if (caml_mpi_exn == NULL) */
-/*       invalid_argument("Exception MPI.Error not initialized"); */
-/*   } */
-/*   /\* if (caml_mpi_exn == NULL) { *\/ */
-/*   /\*   caml_mpi_exn = caml_get_named_value("Mpi.Error", &found); *\/ */
-/*   /\*   //if (caml_mpi_exn == NULL) *\/ */
-/*   /\*   if (found != 0) *\/ */
-/*   /\*     invalid_argument("Exception MPI.Error not initialized"); *\/ */
-/*   /\*     } *\/ */
-/*   raise_with_arg(caml_mpi_exn, msg); */
-/* } */
+  MPI_Error_string(*errcode, errmsg, &resultlen);
+  msg = copy_string(errmsg);
+  if (caml_mpi_exn == NULL) {
+    caml_mpi_exn = caml_named_root("Mpi.Error");
+    if (caml_mpi_exn == NULL)
+      invalid_argument("Exception MPI.Error not initialized");
+    else
+      raise_with_arg(caml_read_root(caml_mpi_exn), msg);
+  }
+
+  CAMLreturn0;
+}
 
 /* Initialization and finalization */
 
@@ -65,8 +63,8 @@ value caml_mpi_init(value arguments)
   argv[i] = NULL;
   MPI_Init(&argc, &argv);
   /* Register an error handler */
-  //MPI_Errhandler_create((MPI_Handler_function *)caml_mpi_error_handler, &hdlr);
-  //MPI_Errhandler_set(MPI_COMM_WORLD, hdlr);
+  MPI_Errhandler_create((MPI_Handler_function *)caml_mpi_error_handler, &hdlr);
+  MPI_Errhandler_set(MPI_COMM_WORLD, hdlr);
   
   CAMLreturn(Val_unit);
 }
@@ -83,4 +81,3 @@ value caml_mpi_wtime(value unit)
   CAMLparam1(unit);
   CAMLreturn(copy_double(MPI_Wtime()));
 }
-
