@@ -316,17 +316,17 @@ value caml_mpi_reduce_intarray(value data, value result, value op,
                                value root, value comm)
 {
   CAMLparam5(data, result, op, root, comm);
-  CAMLlocal2(srcbuf, destbuf);
+
   mlsize_t len = Wosize_val(data);
   mlsize_t reslen = Wosize_val(result);
   int i, myrank;
   /* Decode data at all nodes in place */
   caml_mpi_decode_intarray(data, len);
   /* Do the reduce */
-  caml_read_field(data, 0, &srcbuf);
-  MPI_Reduce(&srcbuf, &destbuf, len, MPI_LONG,
+
+  MPI_Reduce((long*)Op_val(data), (long*)Op_val(result), len, MPI_LONG,
              reduce_intop[Int_val(op)], Int_val(root), Comm_val(comm));
-  caml_modify_field(result, 0, destbuf);
+
   /* Re-encode data at all nodes in place */
   caml_mpi_encode_intarray(data, len);
   /* At root node, also encode result */
@@ -376,16 +376,16 @@ value caml_mpi_allreduce_intarray(value data, value result, value op,
                                   value comm)
 {
   CAMLparam4(data, result, op, comm);
-  CAMLlocal2(srcbuf, destbuf);
+
   mlsize_t len = Wosize_val(data);
   mlsize_t reslen = Wosize_val(result);
   /* Decode data at all nodes in place */
   caml_mpi_decode_intarray(data, len);
   /* Do the reduce */
-  caml_read_field(data, 0, &srcbuf);
-  MPI_Allreduce(&srcbuf, &destbuf, len, MPI_LONG,
+
+  MPI_Allreduce((long*)Op_val(data), (long*)Op_val(result), len, MPI_LONG,
                 reduce_intop[Int_val(op)], Comm_val(comm));
-  caml_modify_field(result, 0, destbuf);
+
   /* Re-encode data at all nodes in place */
   caml_mpi_encode_intarray(data, len);
   /* Re-encode result at all nodes in place */
