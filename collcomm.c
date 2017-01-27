@@ -96,6 +96,7 @@ static void caml_mpi_counts_displs(value lengths,
     *counts = NULL;
     *displs = NULL;
   }
+  CAMLreturn0;
 }
 
 value caml_mpi_scatter(value sendbuf, value sendlengths, 

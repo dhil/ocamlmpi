@@ -296,8 +296,8 @@ value caml_mpi_isend_varlength(value data, value flags,
   result = caml_alloc_tuple(2);
   lenreq = caml_mpi_alloc_request();
   datareq = caml_mpi_alloc_request();
-  caml_modify_field(result, 0, lenreq);
-  caml_modify_field(result, 1, datareq);
+  caml_initialize_field(result, 0, lenreq);
+  caml_initialize_field(result, 1, datareq);
   output_value_to_malloc(data, flags, &buffer, &len); //encode&alloc buffer
   lenbuf = malloc(sizeof(long));
   *lenbuf = len;
