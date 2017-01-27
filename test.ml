@@ -201,19 +201,19 @@ let _ =
   test_gather gather (output_array output_string) output_string
     [| "The"; "quick"; "fox"; "jumps"; "over" |].(myrank);
   let ia = Array.make size 0 in
-  test_gather (fun d r c -> gather_int d ia r c; ia) 
+  test_gather (fun d r c -> gather_int d ia r c; ia)
               output_int_array output_int
               [| 12; 34; 56; 78; 90 |].(myrank);
   let fa = Array.make size 0.0 in
-  test_gather (fun d r c -> gather_float d fa r c; fa) 
+  test_gather (fun d r c -> gather_float d fa r c; fa)
               output_float_array output_float
               [| 1.2; 3.4; 5.6; 7.8; 9.1 |].(myrank);
   let ia = Array.make (3 * size) 0 in
-  test_gather (fun d r c -> gather_int_array d ia r c; ia) 
+  test_gather (fun d r c -> gather_int_array d ia r c; ia)
               output_int_array output_int_array
-              [| myrank*10; myrank*10 + 1; myrank*10 + 2 |];               
+              [| myrank*10; myrank*10 + 1; myrank*10 + 2 |];
   let fa = Array.make (3 * size) 0.0 in
-  test_gather (fun d r c -> gather_float_array d fa r c; fa) 
+  test_gather (fun d r c -> gather_float_array d fa r c; fa)
               output_float_array output_float_array
               [| float myrank; float myrank +. 0.1; float myrank +. 0.2 |]
 
@@ -230,19 +230,19 @@ let _ =
   test_allgather allgather (output_array output_string) output_string
     [| "The"; "quick"; "fox"; "jumps"; "over" |].(myrank);
   let ia = Array.make size 0 in
-  test_allgather (fun d c -> allgather_int d ia c; ia) 
+  test_allgather (fun d c -> allgather_int d ia c; ia)
               output_int_array output_int
               [| 12; 34; 56; 78; 90 |].(myrank);
   let fa = Array.make size 0.0 in
-  test_allgather (fun d c -> allgather_float d fa c; fa) 
+  test_allgather (fun d c -> allgather_float d fa c; fa)
               output_float_array output_float
               [| 1.2; 3.4; 5.6; 7.8; 9.1 |].(myrank);
   let ia = Array.make (3 * size) 0 in
-  test_allgather (fun d c -> allgather_int_array d ia c; ia) 
+  test_allgather (fun d c -> allgather_int_array d ia c; ia)
               output_int_array output_int_array
-              [| myrank*10; myrank*10 + 1; myrank*10 + 2 |];               
+              [| myrank*10; myrank*10 + 1; myrank*10 + 2 |];
   let fa = Array.make (3 * size) 0.0 in
-  test_allgather (fun d c -> allgather_float_array d fa c; fa) 
+  test_allgather (fun d c -> allgather_float_array d fa c; fa)
               output_float_array output_float_array
               [| float myrank; float myrank +. 0.1; float myrank +. 0.2 |]
 
