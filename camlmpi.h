@@ -22,7 +22,7 @@
 #define Comm_val(comm) (*((MPI_Comm *) Data_custom_val(comm)))
 #define Group_val(grp) (*((MPI_Group *) Data_custom_val(grp)))
 #define Request_req_val(req) (*((MPI_Request *) Data_custom_val(req)))
-#define Buffer_req_val(req) (((char**)Data_abstract_val(req))[1])
+#define Buffer_req_val(req) (((char**)Data_custom_val(req))[1])
 #define Bytes_val(x) ((char *) Bp_val(x)) // Same as String_val (c.f. mlvalues.h)
 #define bytes_length string_length
 

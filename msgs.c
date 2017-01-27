@@ -47,7 +47,7 @@ value caml_mpi_send(value data, value flags,
                     value dest, value tag, value vcomm)
 {
   CAMLparam5(data, flags, dest, tag, vcomm);
-  //MPI_Comm comm = Comm_val(vcomm);
+  MPI_Comm comm = Comm_val(vcomm);
   char * buffer;
   long len;
 
@@ -55,10 +55,11 @@ value caml_mpi_send(value data, value flags,
     output_value_to_malloc(data, flags, &buffer, &len);
     /* This also allocates the buffer */
     enter_blocking_section();
-    MPI_Send(buffer, len, MPI_BYTE, Int_val(dest), Int_val(tag), Comm_val(vcomm));
+    MPI_Send(buffer, len, MPI_BYTE, Int_val(dest), Int_val(tag), comm);
     leave_blocking_section();
   End_roots();
   free(buffer);
+  printf("Send returning\n");
   CAMLreturn(Val_unit);
 }
 
@@ -139,16 +140,16 @@ value caml_mpi_receive(value vlen, value source, value tag, value vcomm)
 {
   CAMLparam4(vlen, source, tag, vcomm);
   CAMLlocal1(res);
-  //MPI_Comm comm = Comm_val(vcomm);
+  MPI_Comm comm = Comm_val(vcomm);
   mlsize_t len = Long_val(vlen);
   char * buffer;
   MPI_Status status;
 
   Begin_root(vcomm)             /* prevent deallocation of communicator */
-    buffer = caml_stat_alloc(len);
+    buffer = malloc(len);
     enter_blocking_section();
     MPI_Recv(buffer, len, MPI_BYTE,
-             Int_val(source), Int_val(tag), Comm_val(vcomm), &status);
+             Int_val(source), Int_val(tag), comm, &status);
     leave_blocking_section();
     res = input_value_from_malloc(buffer, 0);
     /* This also deallocates the buffer */
@@ -340,17 +341,25 @@ value caml_mpi_ireceive_varlength(value src, value tag, value vcomm)
   int len;
   MPI_Status status;
 
-  MPI_Comm comm = Comm_val(vcomm);
+  MPI_Comm comm = Comm_val(vcomm);  
   datareq = caml_mpi_alloc_request();
+  MPI_Request req = Request_req_val(datareq);
+
+  // Get hold of the length of the object we are about to receive
   enter_blocking_section();
   MPI_Recv(&len, 1, MPI_INT, Int_val(src), Int_val(tag), comm, &status);
-  leave_blocking_section(); 
-  Buffer_req_val(datareq) = buffer = malloc(len);
-  enter_blocking_section();
-  MPI_Irecv(buffer, len, MPI_BYTE, Int_val(src), Int_val(tag), comm, 
-            &Request_req_val(datareq));
-  leave_blocking_section(); 
+  leave_blocking_section();
+  
+  buffer = caml_stat_alloc(len);
  
+  // Receive the actual object
+  enter_blocking_section();
+  MPI_Irecv(buffer, len, MPI_BYTE, Int_val(src), Int_val(tag), comm, &req);
+  leave_blocking_section();
+
+  Buffer_req_val(datareq) = buffer;
+  Request_req_val(datareq) = req;
+  
   CAMLreturn(datareq);
 }
 

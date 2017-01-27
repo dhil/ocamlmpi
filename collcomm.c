@@ -255,6 +255,7 @@ value caml_mpi_allgather(value sendbuf,
                  Comm_val(comm));
   caml_stat_free(recvcounts);
   caml_stat_free(displs);
+  
   CAMLreturn(Val_unit);
 }
 
